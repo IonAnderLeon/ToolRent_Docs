@@ -1,0 +1,1676 @@
+openapi: 3.0.4
+info:
+  title: ToolRent API
+  description: |
+    REST API for the ToolRent marketplace. It connects customers with tool
+    and machinery vendors, supporting catalogue discovery, geographic search,
+    availability checks, rentals, deposits, payments, invoices and delivery
+    and return evidence.
+  version: 1.0.0
+  contact:
+    name: ToolRent
+servers:
+  - url: https://api.toolrent.example.com/v1
+    description: Production
+  - url: http://localhost:3000/v1
+    description: Local development
+tags:
+  - name: Authentication
+  - name: Users
+  - name: Clients
+  - name: Vendors
+  - name: Categories
+  - name: Tools
+  - name: Inventory
+  - name: Rentals
+  - name: Payments
+  - name: Invoices
+  - name: Rental photos
+security:
+  - bearerAuth: []
+paths:
+  /auth/register:
+    post:
+      tags: [Authentication]
+      security: []
+      summary: Register a user
+      operationId: registerUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: User registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /auth/login:
+    post:
+      tags: [Authentication]
+      security: []
+      summary: Log in
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /users/me:
+    get:
+      tags: [Users]
+      summary: Get the authenticated user
+      operationId: getCurrentUser
+      responses:
+        '200':
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /users:
+    get:
+      tags: [Users]
+      summary: List users
+      operationId: listUsers
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Users
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedUsers'
+    post:
+      tags: [Users]
+      summary: Create a user
+      operationId: createUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserWrite'
+      responses:
+        '201':
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /users/{userId}:
+    parameters:
+      - $ref: '#/components/parameters/UserId'
+    get:
+      tags: [Users]
+      summary: Get a user
+      operationId: getUser
+      responses:
+        '200':
+          description: User
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags: [Users]
+      summary: Replace a user
+      operationId: replaceUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserWrite'
+      responses:
+        '200':
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [Users]
+      summary: Delete a user
+      operationId: deleteUser
+      responses:
+        '204':
+          description: User deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /categories:
+    get:
+      tags: [Categories]
+      security: []
+      summary: List tool categories
+      operationId: listCategories
+      responses:
+        '200':
+          description: Categories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Category'
+    post:
+      tags: [Categories]
+      summary: Create a category
+      operationId: createCategory
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryWrite'
+      responses:
+        '201':
+          description: Category created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /categories/{categoryId}:
+    parameters:
+      - $ref: '#/components/parameters/CategoryId'
+    get:
+      tags: [Categories]
+      security: []
+      summary: Get a category
+      operationId: getCategory
+      responses:
+        '200':
+          description: Category
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags: [Categories]
+      summary: Update a category
+      operationId: updateCategory
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryWrite'
+      responses:
+        '200':
+          description: Updated category
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags: [Categories]
+      summary: Replace a category
+      operationId: replaceCategory
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CategoryWrite'
+      responses:
+        '200':
+          description: Replaced category
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [Categories]
+      summary: Delete a category
+      operationId: deleteCategory
+      responses:
+        '204':
+          description: Category deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /tools:
+    get:
+      tags: [Tools]
+      security: []
+      summary: Search the tool catalogue
+      operationId: listTools
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - in: query
+          name: search
+          schema:
+            type: string
+          description: Search by tool name or description.
+        - in: query
+          name: categoryId
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: latitude
+          schema:
+            type: number
+            format: double
+            minimum: -90
+            maximum: 90
+        - in: query
+          name: longitude
+          schema:
+            type: number
+            format: double
+            minimum: -180
+            maximum: 180
+        - in: query
+          name: radiusKm
+          schema:
+            type: number
+            format: double
+            minimum: 0
+            default: 25
+          description: Radius around the supplied coordinates.
+        - in: query
+          name: availableFrom
+          schema:
+            type: string
+            format: date-time
+        - in: query
+          name: availableTo
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Paginated catalogue results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedTools'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    post:
+      tags: [Tools]
+      summary: Create a catalogue tool
+      operationId: createTool
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ToolWrite'
+      responses:
+        '201':
+          description: Tool created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tool'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /tools/{toolId}:
+    parameters:
+      - $ref: '#/components/parameters/ToolId'
+    get:
+      tags: [Tools]
+      security: []
+      summary: Get a tool and its inventory
+      operationId: getTool
+      responses:
+        '200':
+          description: Tool
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ToolDetails'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags: [Tools]
+      summary: Update a tool
+      operationId: updateTool
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ToolWrite'
+      responses:
+        '200':
+          description: Updated tool
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tool'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags: [Tools]
+      summary: Replace a tool
+      operationId: replaceTool
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ToolWrite'
+      responses:
+        '200':
+          description: Replaced tool
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tool'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [Tools]
+      summary: Delete a tool
+      operationId: deleteTool
+      responses:
+        '204':
+          description: Tool deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /inventory:
+    get:
+      tags: [Inventory]
+      summary: List inventory units
+      operationId: listInventory
+      parameters:
+        - in: query
+          name: toolId
+          schema:
+            type: string
+            format: uuid
+        - in: query
+          name: vendorId
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Paginated inventory
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedInventory'
+    post:
+      tags: [Inventory]
+      summary: Add inventory for a vendor
+      operationId: createInventory
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InventoryWrite'
+      responses:
+        '201':
+          description: Inventory created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Inventory'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /inventory/{inventoryId}:
+    parameters:
+      - $ref: '#/components/parameters/InventoryId'
+    get:
+      tags: [Inventory]
+      summary: Get an inventory entry
+      operationId: getInventory
+      responses:
+        '200':
+          description: Inventory entry
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Inventory'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags: [Inventory]
+      summary: Update stock or daily price
+      operationId: updateInventory
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InventoryWrite'
+      responses:
+        '200':
+          description: Updated inventory
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Inventory'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags: [Inventory]
+      summary: Replace an inventory entry
+      operationId: replaceInventory
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InventoryWrite'
+      responses:
+        '200':
+          description: Replaced inventory
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Inventory'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [Inventory]
+      summary: Delete an inventory entry
+      operationId: deleteInventory
+      responses:
+        '204':
+          description: Inventory entry deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /vendors:
+    get:
+      tags: [Vendors]
+      security: []
+      summary: List vendors near a location
+      operationId: listVendors
+      parameters:
+        - in: query
+          name: latitude
+          schema: { type: number, format: double, minimum: -90, maximum: 90 }
+        - in: query
+          name: longitude
+          schema: { type: number, format: double, minimum: -180, maximum: 180 }
+        - in: query
+          name: radiusKm
+          schema: { type: number, format: double, minimum: 0, default: 25 }
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Vendors
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedVendors'
+    post:
+      tags: [Vendors]
+      summary: Create the authenticated user's vendor profile
+      operationId: createVendor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VendorWrite'
+      responses:
+        '201':
+          description: Vendor created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vendor'
+  /vendors/{vendorId}:
+    parameters:
+      - $ref: '#/components/parameters/VendorId'
+    get:
+      tags: [Vendors]
+      security: []
+      summary: Get a vendor
+      operationId: getVendor
+      responses:
+        '200':
+          description: Vendor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vendor'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags: [Vendors]
+      summary: Update a vendor profile
+      operationId: updateVendor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VendorWrite'
+      responses:
+        '200':
+          description: Updated vendor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vendor'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags: [Vendors]
+      summary: Replace a vendor profile
+      operationId: replaceVendor
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VendorWrite'
+      responses:
+        '200':
+          description: Replaced vendor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vendor'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [Vendors]
+      summary: Delete a vendor profile
+      operationId: deleteVendor
+      responses:
+        '204':
+          description: Vendor deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /clients/me:
+    get:
+      tags: [Clients]
+      summary: Get the authenticated client's profile
+      operationId: getClientProfile
+      responses:
+        '200':
+          description: Client profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Client'
+    put:
+      tags: [Clients]
+      summary: Create or replace the authenticated client's profile
+      operationId: upsertClientProfile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClientWrite'
+      responses:
+        '200':
+          description: Client profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Client'
+    delete:
+      tags: [Clients]
+      summary: Delete the authenticated client's profile
+      operationId: deleteMyClientProfile
+      responses:
+        '204':
+          description: Client profile deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /clients:
+    get:
+      tags: [Clients]
+      summary: List client profiles
+      operationId: listClients
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Clients
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedClients'
+    post:
+      tags: [Clients]
+      summary: Create a client profile
+      operationId: createClient
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClientWrite'
+      responses:
+        '201':
+          description: Client profile created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Client'
+  /clients/{clientId}:
+    parameters:
+      - $ref: '#/components/parameters/ClientId'
+    get:
+      tags: [Clients]
+      summary: Get a client profile
+      operationId: getClient
+      responses:
+        '200':
+          description: Client profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Client'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags: [Clients]
+      summary: Replace a client profile
+      operationId: replaceClient
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ClientWrite'
+      responses:
+        '200':
+          description: Replaced client profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Client'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [Clients]
+      summary: Delete a client profile
+      operationId: deleteClient
+      responses:
+        '204':
+          description: Client profile deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /rentals/availability:
+    get:
+      tags: [Rentals]
+      security: []
+      summary: Check inventory availability for dates
+      operationId: checkAvailability
+      parameters:
+        - in: query
+          name: inventoryId
+          required: true
+          schema: { type: string, format: uuid }
+        - in: query
+          name: startDate
+          required: true
+          schema: { type: string, format: date-time }
+        - in: query
+          name: endDate
+          required: true
+          schema: { type: string, format: date-time }
+      responses:
+        '200':
+          description: Availability
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Availability'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /rentals:
+    get:
+      tags: [Rentals]
+      summary: List the authenticated user's rentals
+      operationId: listRentals
+      parameters:
+        - in: query
+          name: status
+          schema:
+            $ref: '#/components/schemas/RentalStatus'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Rentals
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedRentals'
+    post:
+      tags: [Rentals]
+      summary: Create a rental reservation
+      operationId: createRental
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RentalCreate'
+      responses:
+        '201':
+          description: Rental created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Rental'
+        '409':
+          description: Inventory is unavailable for the requested dates
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /rentals/{rentalId}:
+    parameters:
+      - $ref: '#/components/parameters/RentalId'
+    get:
+      tags: [Rentals]
+      summary: Get rental details
+      operationId: getRental
+      responses:
+        '200':
+          description: Rental
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Rental'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags: [Rentals]
+      summary: Change a rental status
+      operationId: updateRentalStatus
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  $ref: '#/components/schemas/RentalStatus'
+      responses:
+        '200':
+          description: Updated rental
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Rental'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags: [Rentals]
+      summary: Replace a rental
+      operationId: replaceRental
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RentalUpdate'
+      responses:
+        '200':
+          description: Replaced rental
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Rental'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [Rentals]
+      summary: Delete or cancel a rental
+      operationId: deleteRental
+      responses:
+        '204':
+          description: Rental deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /rental-items:
+    get:
+      tags: [Rentals]
+      summary: List rental items
+      operationId: listRentalItems
+      parameters:
+        - in: query
+          name: rentalId
+          schema: { type: string, format: uuid }
+        - in: query
+          name: inventoryId
+          schema: { type: string, format: uuid }
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Rental items
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedRentalItems'
+    post:
+      tags: [Rentals]
+      summary: Add an item to a rental
+      operationId: createRentalItem
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RentalItemWrite'
+      responses:
+        '201':
+          description: Rental item created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RentalItem'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /rental-items/{rentalItemId}:
+    parameters:
+      - $ref: '#/components/parameters/RentalItemId'
+    get:
+      tags: [Rentals]
+      summary: Get a rental item
+      operationId: getRentalItem
+      responses:
+        '200':
+          description: Rental item
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RentalItem'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags: [Rentals]
+      summary: Replace a rental item
+      operationId: replaceRentalItem
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RentalItemWrite'
+      responses:
+        '200':
+          description: Replaced rental item
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RentalItem'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [Rentals]
+      summary: Remove an item from a rental
+      operationId: deleteRentalItem
+      responses:
+        '204':
+          description: Rental item deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /rentals/{rentalId}/photos:
+    parameters:
+      - $ref: '#/components/parameters/RentalId'
+    get:
+      tags: [Rental photos]
+      summary: List delivery and return photos
+      operationId: listRentalPhotos
+      responses:
+        '200':
+          description: Rental photos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RentalPhoto'
+    post:
+      tags: [Rental photos]
+      summary: Add a delivery or return photo
+      operationId: createRentalPhoto
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RentalPhotoWrite'
+      responses:
+        '201':
+          description: Photo registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RentalPhoto'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /rentals/{rentalId}/photos/{photoId}:
+    parameters:
+      - $ref: '#/components/parameters/RentalId'
+      - $ref: '#/components/parameters/PhotoId'
+    get:
+      tags: [Rental photos]
+      summary: Get a rental photo
+      operationId: getRentalPhoto
+      responses:
+        '200':
+          description: Rental photo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RentalPhoto'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags: [Rental photos]
+      summary: Replace a rental photo
+      operationId: replaceRentalPhoto
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RentalPhotoWrite'
+      responses:
+        '200':
+          description: Replaced rental photo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RentalPhoto'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [Rental photos]
+      summary: Delete a rental photo
+      operationId: deleteRentalPhoto
+      responses:
+        '204':
+          description: Rental photo deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /payments:
+    get:
+      tags: [Payments]
+      summary: List payments for the authenticated user
+      operationId: listPayments
+      parameters:
+        - in: query
+          name: rentalId
+          schema: { type: string, format: uuid }
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Payments
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedPayments'
+    post:
+      tags: [Payments]
+      summary: Create a rental, deposit or refund payment
+      operationId: createPayment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentCreate'
+      responses:
+        '201':
+          description: Payment created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /payments/{paymentId}:
+    parameters:
+      - $ref: '#/components/parameters/PaymentId'
+    get:
+      tags: [Payments]
+      summary: Get a payment
+      operationId: getPayment
+      responses:
+        '200':
+          description: Payment
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags: [Payments]
+      summary: Replace a payment
+      operationId: replacePayment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentUpdate'
+      responses:
+        '200':
+          description: Replaced payment
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [Payments]
+      summary: Delete or void a payment
+      operationId: deletePayment
+      responses:
+        '204':
+          description: Payment deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /invoices:
+    get:
+      tags: [Invoices]
+      summary: List invoices
+      operationId: listInvoices
+      parameters:
+        - in: query
+          name: rentalId
+          schema: { type: string, format: uuid }
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Invoices
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedInvoices'
+    post:
+      tags: [Invoices]
+      summary: Create an invoice
+      operationId: createInvoice
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvoiceCreate'
+      responses:
+        '201':
+          description: Invoice created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invoice'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+  /invoices/{invoiceId}:
+    parameters:
+      - $ref: '#/components/parameters/InvoiceId'
+    get:
+      tags: [Invoices]
+      summary: Get invoice metadata and PDF URL
+      operationId: getInvoice
+      responses:
+        '200':
+          description: Invoice
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invoice'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags: [Invoices]
+      summary: Replace an invoice
+      operationId: replaceInvoice
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvoiceUpdate'
+      responses:
+        '200':
+          description: Replaced invoice
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Invoice'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [Invoices]
+      summary: Delete an invoice
+      operationId: deleteInvoice
+      responses:
+        '204':
+          description: Invoice deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    UserId:
+      name: userId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    CategoryId:
+      name: categoryId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    ToolId:
+      name: toolId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    InventoryId:
+      name: inventoryId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    VendorId:
+      name: vendorId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    ClientId:
+      name: clientId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    RentalId:
+      name: rentalId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    PaymentId:
+      name: paymentId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    RentalItemId:
+      name: rentalItemId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    PhotoId:
+      name: photoId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    InvoiceId:
+      name: invoiceId
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    Page:
+      name: page
+      in: query
+      schema: { type: integer, minimum: 1, default: 1 }
+    PageSize:
+      name: pageSize
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+  responses:
+    Unauthorized:
+      description: Authentication is required or the token is invalid
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Conflict:
+      description: Request conflicts with the current resource state
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    ValidationError:
+      description: Request validation failed
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/ValidationError' }
+  schemas:
+    Uuid:
+      type: string
+      format: uuid
+    Money:
+      type: number
+      format: double
+      minimum: 0
+      example: 24.5
+    Coordinates:
+      type: object
+      properties:
+        latitude: { type: number, format: double, minimum: -90, maximum: 90 }
+        longitude: { type: number, format: double, minimum: -180, maximum: 180 }
+    User:
+      type: object
+      required: [id, username, email, role]
+      properties:
+        id: { $ref: '#/components/schemas/Uuid' }
+        username: { type: string, minLength: 3, maxLength: 100 }
+        email: { type: string, format: email }
+        role:
+          type: string
+          enum: [client, vendor, admin]
+        createdAt: { type: string, format: date-time }
+    UserWrite:
+      type: object
+      required: [username, email, role]
+      properties:
+        username: { type: string, minLength: 3, maxLength: 100 }
+        email: { type: string, format: email }
+        password: { type: string, minLength: 8, format: password }
+        role: { type: string, enum: [client, vendor, admin] }
+    RegisterRequest:
+      type: object
+      required: [username, email, password, role]
+      properties:
+        username: { type: string, minLength: 3, maxLength: 100 }
+        email: { type: string, format: email }
+        password: { type: string, minLength: 8, format: password }
+        role: { type: string, enum: [client, vendor] }
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string, format: password }
+    AuthResponse:
+      type: object
+      required: [accessToken, tokenType, user]
+      properties:
+        accessToken: { type: string }
+        tokenType: { type: string, enum: [Bearer] }
+        expiresIn: { type: integer, description: Token lifetime in seconds }
+        user: { $ref: '#/components/schemas/User' }
+    Client:
+      type: object
+      required: [id, userId]
+      properties:
+        id: { $ref: '#/components/schemas/Uuid' }
+        userId: { $ref: '#/components/schemas/Uuid' }
+        nif: { type: string, maxLength: 30 }
+        phone: { type: string, maxLength: 30 }
+        address: { type: string, maxLength: 255 }
+        latitude: { type: number, format: double, minimum: -90, maximum: 90 }
+        longitude: { type: number, format: double, minimum: -180, maximum: 180 }
+    ClientWrite:
+      type: object
+      properties:
+        nif: { type: string, maxLength: 30 }
+        phone: { type: string, maxLength: 30 }
+        address: { type: string, maxLength: 255 }
+        latitude: { type: number, format: double, minimum: -90, maximum: 90 }
+        longitude: { type: number, format: double, minimum: -180, maximum: 180 }
+    Vendor:
+      type: object
+      required: [id, userId, businessName, isActive]
+      properties:
+        id: { $ref: '#/components/schemas/Uuid' }
+        userId: { $ref: '#/components/schemas/Uuid' }
+        nif: { type: string, maxLength: 30 }
+        businessName: { type: string, maxLength: 150 }
+        phone: { type: string, maxLength: 30 }
+        address: { type: string, maxLength: 255 }
+        latitude: { type: number, format: double, minimum: -90, maximum: 90 }
+        longitude: { type: number, format: double, minimum: -180, maximum: 180 }
+        isActive: { type: boolean }
+    VendorWrite:
+      type: object
+      required: [businessName]
+      properties:
+        nif: { type: string, maxLength: 30 }
+        businessName: { type: string, maxLength: 150 }
+        phone: { type: string, maxLength: 30 }
+        address: { type: string, maxLength: 255 }
+        latitude: { type: number, format: double, minimum: -90, maximum: 90 }
+        longitude: { type: number, format: double, minimum: -180, maximum: 180 }
+        isActive: { type: boolean }
+    Category:
+      type: object
+      required: [id, name]
+      properties:
+        id: { $ref: '#/components/schemas/Uuid' }
+        name: { type: string, minLength: 1, maxLength: 100 }
+    CategoryWrite:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 100 }
+    Tool:
+      type: object
+      required: [id, name, categoryId]
+      properties:
+        id: { $ref: '#/components/schemas/Uuid' }
+        name: { type: string, maxLength: 150 }
+        description: { type: string }
+        photoUrl: { type: string, format: uri }
+        categoryId: { $ref: '#/components/schemas/Uuid' }
+        category: { $ref: '#/components/schemas/Category' }
+    ToolWrite:
+      type: object
+      required: [name, categoryId]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 150 }
+        description: { type: string }
+        photoUrl: { type: string, format: uri }
+        categoryId: { $ref: '#/components/schemas/Uuid' }
+    ToolDetails:
+      allOf:
+        - $ref: '#/components/schemas/Tool'
+        - type: object
+          properties:
+            inventory:
+              type: array
+              items: { $ref: '#/components/schemas/Inventory' }
+    Inventory:
+      type: object
+      required: [id, stock, price, toolId, vendorId]
+      properties:
+        id: { $ref: '#/components/schemas/Uuid' }
+        stock: { type: integer, minimum: 0 }
+        price: { $ref: '#/components/schemas/Money' }
+        toolId: { $ref: '#/components/schemas/Uuid' }
+        vendorId: { $ref: '#/components/schemas/Uuid' }
+        tool: { $ref: '#/components/schemas/Tool' }
+        vendor: { $ref: '#/components/schemas/Vendor' }
+    InventoryWrite:
+      type: object
+      required: [stock, price, toolId, vendorId]
+      properties:
+        stock: { type: integer, minimum: 0 }
+        price: { $ref: '#/components/schemas/Money' }
+        toolId: { $ref: '#/components/schemas/Uuid' }
+        vendorId: { $ref: '#/components/schemas/Uuid' }
+    RentalStatus:
+      type: string
+      enum: [pending, active, finished, cancelled]
+    Rental:
+      type: object
+      required: [id, clientId, vendorId, startDate, endDate, status, totalAmount, depositAmount, items]
+      properties:
+        id: { $ref: '#/components/schemas/Uuid' }
+        clientId: { $ref: '#/components/schemas/Uuid' }
+        vendorId: { $ref: '#/components/schemas/Uuid' }
+        startDate: { type: string, format: date-time }
+        endDate: { type: string, format: date-time }
+        status: { $ref: '#/components/schemas/RentalStatus' }
+        totalAmount: { $ref: '#/components/schemas/Money' }
+        depositAmount: { $ref: '#/components/schemas/Money' }
+        items:
+          type: array
+          minItems: 1
+          items: { $ref: '#/components/schemas/RentalItem' }
+        client: { $ref: '#/components/schemas/Client' }
+        vendor: { $ref: '#/components/schemas/Vendor' }
+    RentalCreate:
+      type: object
+      required: [vendorId, startDate, endDate, items]
+      properties:
+        vendorId: { $ref: '#/components/schemas/Uuid' }
+        startDate: { type: string, format: date-time }
+        endDate: { type: string, format: date-time }
+        depositAmount: { $ref: '#/components/schemas/Money' }
+        items:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            required: [inventoryId]
+            properties:
+              inventoryId: { $ref: '#/components/schemas/Uuid' }
+    RentalUpdate:
+      type: object
+      required: [vendorId, startDate, endDate, status, items]
+      properties:
+        vendorId: { $ref: '#/components/schemas/Uuid' }
+        startDate: { type: string, format: date-time }
+        endDate: { type: string, format: date-time }
+        status: { $ref: '#/components/schemas/RentalStatus' }
+        depositAmount: { $ref: '#/components/schemas/Money' }
+        items:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            required: [inventoryId]
+            properties:
+              inventoryId: { $ref: '#/components/schemas/Uuid' }
+    RentalItem:
+      type: object
+      required: [id, rentalId, inventoryId, pricePerDay]
+      properties:
+        id: { $ref: '#/components/schemas/Uuid' }
+        rentalId: { $ref: '#/components/schemas/Uuid' }
+        inventoryId: { $ref: '#/components/schemas/Uuid' }
+        pricePerDay: { $ref: '#/components/schemas/Money' }
+        inventory: { $ref: '#/components/schemas/Inventory' }
+    RentalItemWrite:
+      type: object
+      required: [rentalId, inventoryId, pricePerDay]
+      properties:
+        rentalId: { $ref: '#/components/schemas/Uuid' }
+        inventoryId: { $ref: '#/components/schemas/Uuid' }
+        pricePerDay: { $ref: '#/components/schemas/Money' }
+    Availability:
+      type: object
+      required: [inventoryId, available, availableStock]
+      properties:
+        inventoryId: { $ref: '#/components/schemas/Uuid' }
+        available: { type: boolean }
+        availableStock: { type: integer, minimum: 0 }
+    PaymentType:
+      type: string
+      enum: [rental, deposit, refund]
+    PaymentStatus:
+      type: string
+      enum: [pending, completed, failed]
+    Payment:
+      type: object
+      required: [id, rentalId, amount, type, status]
+      properties:
+        id: { $ref: '#/components/schemas/Uuid' }
+        rentalId: { $ref: '#/components/schemas/Uuid' }
+        amount: { $ref: '#/components/schemas/Money' }
+        type: { $ref: '#/components/schemas/PaymentType' }
+        status: { $ref: '#/components/schemas/PaymentStatus' }
+        transactionId: { type: string, maxLength: 255 }
+    PaymentCreate:
+      type: object
+      required: [rentalId, amount, type]
+      properties:
+        rentalId: { $ref: '#/components/schemas/Uuid' }
+        amount: { $ref: '#/components/schemas/Money' }
+        type: { $ref: '#/components/schemas/PaymentType' }
+    PaymentUpdate:
+      type: object
+      required: [status]
+      properties:
+        amount: { $ref: '#/components/schemas/Money' }
+        type: { $ref: '#/components/schemas/PaymentType' }
+        status: { $ref: '#/components/schemas/PaymentStatus' }
+        transactionId: { type: string, maxLength: 255 }
+    Invoice:
+      type: object
+      required: [id, clientId, total, issuedAt]
+      properties:
+        id: { $ref: '#/components/schemas/Uuid' }
+        clientId: { $ref: '#/components/schemas/Uuid' }
+        rentalId: { $ref: '#/components/schemas/Uuid' }
+        pdfUrl: { type: string, format: uri }
+        total: { $ref: '#/components/schemas/Money' }
+        issuedAt: { type: string, format: date-time }
+    InvoiceCreate:
+      type: object
+      required: [clientId, total]
+      properties:
+        clientId: { $ref: '#/components/schemas/Uuid' }
+        rentalId: { $ref: '#/components/schemas/Uuid' }
+        pdfUrl: { type: string, format: uri }
+        total: { $ref: '#/components/schemas/Money' }
+    InvoiceUpdate:
+      type: object
+      required: [total]
+      properties:
+        rentalId: { $ref: '#/components/schemas/Uuid' }
+        pdfUrl: { type: string, format: uri }
+        total: { $ref: '#/components/schemas/Money' }
+    RentalPhoto:
+      type: object
+      required: [id, rentalId, type, photoUrl, createdAt]
+      properties:
+        id: { $ref: '#/components/schemas/Uuid' }
+        rentalId: { $ref: '#/components/schemas/Uuid' }
+        type: { type: string, enum: [delivery, return] }
+        photoUrl: { type: string, format: uri }
+        createdAt: { type: string, format: date-time }
+    RentalPhotoWrite:
+      type: object
+      required: [type, photoUrl]
+      properties:
+        type: { type: string, enum: [delivery, return] }
+        photoUrl: { type: string, format: uri }
+    Pagination:
+      type: object
+      required: [page, pageSize, totalPages, totalItems]
+      properties:
+        page: { type: integer }
+        pageSize: { type: integer }
+        totalPages: { type: integer }
+        totalItems: { type: integer }
+    PaginatedTools:
+      type: object
+      required: [data, pagination]
+      properties:
+        data: { type: array, items: { $ref: '#/components/schemas/ToolDetails' } }
+        pagination: { $ref: '#/components/schemas/Pagination' }
+    PaginatedUsers:
+      type: object
+      required: [data, pagination]
+      properties:
+        data: { type: array, items: { $ref: '#/components/schemas/User' } }
+        pagination: { $ref: '#/components/schemas/Pagination' }
+    PaginatedClients:
+      type: object
+      required: [data, pagination]
+      properties:
+        data: { type: array, items: { $ref: '#/components/schemas/Client' } }
+        pagination: { $ref: '#/components/schemas/Pagination' }
+    PaginatedInventory:
+      type: object
+      required: [data, pagination]
+      properties:
+        data: { type: array, items: { $ref: '#/components/schemas/Inventory' } }
+        pagination: { $ref: '#/components/schemas/Pagination' }
+    PaginatedVendors:
+      type: object
+      required: [data, pagination]
+      properties:
+        data: { type: array, items: { $ref: '#/components/schemas/Vendor' } }
+        pagination: { $ref: '#/components/schemas/Pagination' }
+    PaginatedRentals:
+      type: object
+      required: [data, pagination]
+      properties:
+        data: { type: array, items: { $ref: '#/components/schemas/Rental' } }
+        pagination: { $ref: '#/components/schemas/Pagination' }
+    PaginatedRentalItems:
+      type: object
+      required: [data, pagination]
+      properties:
+        data: { type: array, items: { $ref: '#/components/schemas/RentalItem' } }
+        pagination: { $ref: '#/components/schemas/Pagination' }
+    PaginatedPayments:
+      type: object
+      required: [data, pagination]
+      properties:
+        data: { type: array, items: { $ref: '#/components/schemas/Payment' } }
+        pagination: { $ref: '#/components/schemas/Pagination' }
+    PaginatedInvoices:
+      type: object
+      required: [data, pagination]
+      properties:
+        data: { type: array, items: { $ref: '#/components/schemas/Invoice' } }
+        pagination: { $ref: '#/components/schemas/Pagination' }
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code: { type: string }
+        message: { type: string }
+        requestId: { type: string }
+    ValidationError:
+      allOf:
+        - $ref: '#/components/schemas/Error'
+        - type: object
+          properties:
+            fields:
+              type: object
+              additionalProperties:
+                type: array
+                items: { type: string }
